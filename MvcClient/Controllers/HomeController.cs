@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MvcClient.Models;
 using System.Diagnostics;
+using System.Net.Http.Headers;
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Authentication;
+using Newtonsoft.Json.Linq;
 
 namespace MvcClient.Controllers
 {
@@ -32,6 +36,19 @@ namespace MvcClient.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<IActionResult> CallApi()
+        {
+            //检索令牌
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var content = await client.GetStringAsync("https://localhost:5001/identity");
+            ViewBag.Json = JArray.Parse(content).ToString();
+            return View("json");
+
         }
     }
 }
